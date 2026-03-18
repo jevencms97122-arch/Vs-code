@@ -1,23 +1,56 @@
 import PocketBase from 'pocketbase';
 
-const pb = new PocketBase('http://188.115.125.74:8090/');
+export const pb = new PocketBase('http://188.115.125.74:8090/');
 
-// --- PIN / Session ---
-
-export async function validatePin(pin: string): Promise<boolean> {
-  if (pin === '7640') {
-    localStorage.setItem('jux_session', pin);
-    return true;
-  }
-  return false;
-}
+// --- Authentication ---
 
 export function checkSession(): boolean {
-  return localStorage.getItem('jux_session') === '7640';
+  return localStorage.getItem('jux_session') === 'email';
 }
 
 export function clearSession(): void {
   localStorage.removeItem('jux_session');
+}
+
+// --- Email Authentication ---
+
+export async function loginWithEmail(email: string, password: string): Promise<boolean> {
+  try {
+    const authData = await pb.collection('users').authWithPassword(email, password);
+    localStorage.setItem('jux_session', 'email');
+    return true;
+  } catch (error) {
+    console.error('Email login error:', error);
+    return false;
+  }
+}
+
+
+// --- Quick Code Authentication ---
+
+export async function authenticateWithQuickCode(code: string): Promise<boolean> {
+  try {
+    // Vérifier si le code existe dans la collection codes
+    const quickCode = await pb.collection('codes').getFirstListItem(`code_number="${code}"`);
+    
+    if (quickCode) {
+      // Stocker l'authentification en session
+      sessionStorage.setItem('jux_quick_auth', 'true');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Quick code authentication error:', error);
+    return false;
+  }
+}
+
+export function checkQuickAuth(): boolean {
+  return sessionStorage.getItem('jux_quick_auth') === 'true';
+}
+
+export function clearQuickAuth(): void {
+  sessionStorage.removeItem('jux_quick_auth');
 }
 
 // --- Folders ---
@@ -76,6 +109,7 @@ export interface PBFile {
   size: number;
   type: string;
   save_location?: string;
+  favorite?: boolean;
   created: string;
   updated: string;
 }
@@ -132,6 +166,35 @@ export async function getAllImageFiles(): Promise<PBFile[]> {
     sort: '-created',
   });
   return records;
+}
+
+export async function getRecentFiles(limit: number = 10): Promise<PBFile[]> {
+  const records = await pb.collection('files').getList<PBFile>(1, limit, {
+    sort: '-updated',
+  });
+  return records.items;
+}
+
+// --- Favorites ---
+
+export async function getFavoriteFiles(): Promise<PBFile[]> {
+  const records = await pb.collection('files').getFullList<PBFile>({
+    filter: 'favorite=true',
+    sort: '-updated',
+  });
+  return records;
+}
+
+export async function toggleFavorite(fileId: string): Promise<void> {
+  try {
+    const file = await pb.collection('files').getOne<PBFile>(fileId);
+    await pb.collection('files').update(fileId, {
+      favorite: !file.favorite,
+    });
+  } catch (err) {
+    console.error('Error toggling favorite:', err);
+    throw err;
+  }
 }
 
 // --- Save Location (stored as plain text field in files collection) ---

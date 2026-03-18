@@ -3,10 +3,13 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MainMenu } from "@/components/MainMenu";
 import Index from "./pages/Index.tsx";
 import Editor from "./pages/Editor.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { lazy, Suspense } from "react";
+
+const CloudPage = lazy(() => import("./pages/Cloud.tsx"));
+const FavoritesPage = lazy(() => import("./pages/Favorites.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -18,8 +21,17 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/cloud" element={
+            <Suspense fallback={<div className="min-h-screen bg-background" />}>
+              <CloudPage />
+            </Suspense>
+          } />
+          <Route path="/favorites" element={
+            <Suspense fallback={<div className="min-h-screen bg-background" />}>
+              <FavoritesPage />
+            </Suspense>
+          } />
           <Route path="/editor" element={<Editor />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -10,10 +10,11 @@ import {
   deleteFile,
   getFileUrl,
   getFolderPath,
-  clearSession,
+  toggleFavorite,
   type PBFolder,
   type PBFile,
 } from '@/lib/pocketbase';
+import { pb } from '@/lib/pocketbase';
 import {
   Folder,
   FileText,
@@ -24,8 +25,10 @@ import {
   LogOut,
   HardDrive,
   Edit,
+  Pencil,
+  Star,
+  Star as StarFilled,
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 
 const brandCurve = [0.16, 1, 0.3, 1] as const;
@@ -66,6 +69,8 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [showNewFolder, setShowNewFolder] = useState(false);
+  const [renamingFile, setRenamingFile] = useState<PBFile | null>(null);
+  const [newFileName, setNewFileName] = useState('');
 
   const loadContent = useCallback(async () => {
     setLoading(true);
@@ -134,6 +139,45 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     loadContent();
   };
 
+  const handleToggleFavorite = async (fileId: string) => {
+    try {
+      await toggleFavorite(fileId);
+      // Refresh the content to show updated favorite status
+      loadContent();
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Erreur lors de la mise en favoris');
+    }
+  };
+
+  const handleRenameFile = async () => {
+    if (!renamingFile || !newFileName.trim()) return;
+    
+    // Empêcher le changement d'extension
+    const currentExtension = renamingFile.name.split('.').pop();
+    const newName = newFileName.trim();
+    const newExtension = newName.split('.').pop();
+    
+    if (currentExtension !== newExtension) {
+      alert('Impossible de modifier le type de fichier');
+      return;
+    }
+
+    try {
+      // Mettre à jour le nom du fichier dans PocketBase
+      await pb.collection('files').update(renamingFile.id, {
+        name: newName,
+      });
+      
+      setRenamingFile(null);
+      setNewFileName('');
+      loadContent();
+    } catch (error) {
+      console.error('Rename error:', error);
+      alert('Erreur lors du renommage du fichier');
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -143,7 +187,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   };
 
   const handleLogout = () => {
-    clearSession();
     onLogout();
   };
 
@@ -183,13 +226,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         </div>
       </header>
 
-      <Tabs defaultValue="cloud" className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="cloud">Cloud</TabsTrigger>
-          <TabsTrigger value="creation">Création</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="cloud" className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
           {/* Breadcrumbs + Actions */}
           <div className="h-10 border-b flex items-center justify-between px-4">
             <div className="flex items-center gap-1 font-mono text-xs">
@@ -352,11 +389,35 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                     <span className="text-xs text-muted-foreground font-mono mr-4">
                       {timeAgo(file.created)}
                     </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFavorite(file.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
+                      title={file.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                    >
+                      {file.favorite ? (
+                        <StarFilled className="w-3.5 h-3.5 text-primary fill-primary" />
+                      ) : (
+                        <Star className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRenamingFile(file);
+                        setNewFileName(file.name);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
+                      title="Rename"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
                     {file.name.endsWith('.json') && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: Load document in editor
                           navigate('/editor', { state: { fileId: file.id } });
                         }}
                         className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
@@ -379,18 +440,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               </motion.div>
             )}
           </div>
-        </TabsContent>
-
-        <TabsContent value="creation" className="flex-1 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <FileText className="w-16 h-16 text-muted-foreground mx-auto" />
-            <h2 className="text-lg font-mono">Créer un nouveau document</h2>
-            <Button onClick={() => navigate('/editor')}>
-              Créer un document
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {/* File Preview Modal */}
       <AnimatePresence>
@@ -473,6 +523,67 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
           {folders.length} folders / {files.length} files
         </span>
       </footer>
+
+      {/* Rename File Modal */}
+      <AnimatePresence>
+        {renamingFile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setRenamingFile(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2, ease: brandCurve }}
+              className="bg-background border rounded-lg p-6 w-96"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-mono">Renommer le fichier</h3>
+                <button
+                  onClick={() => setRenamingFile(null)}
+                  className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono text-muted-foreground mb-2">
+                    Nouveau nom
+                  </label>
+                  <input
+                    type="text"
+                    value={newFileName}
+                    onChange={(e) => setNewFileName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleRenameFile()}
+                    className="w-full bg-secondary border border-border px-3 py-2 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setRenamingFile(null)}
+                    className="px-4 py-2 text-xs font-mono border border-border hover:bg-secondary transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleRenameFile}
+                    className="px-4 py-2 text-xs font-mono bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                  >
+                    Renommer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
