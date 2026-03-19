@@ -29,6 +29,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const brandCurve = [0.16, 1, 0.3, 1] as const;
 
@@ -67,6 +68,7 @@ const HomePage = ({ onLogout }: HomePageProps) => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const filteredFiles = useMemo(() => {
     if (!search.trim()) return recentFiles;
@@ -132,55 +134,88 @@ const HomePage = ({ onLogout }: HomePageProps) => {
         </button>
       </header>
 
-      <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-8 pr-20">
-        {/* Sidebar */}
-        <motion.div
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, ease: brandCurve }}
-          className="fixed right-0 top-0 h-full w-20 bg-card border-l border-border z-50 flex flex-col items-center py-6 gap-4"
-        >
-          {/* Cloud Icon */}
-          <button
-            onClick={() => navigate('/cloud')}
-            className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
-            title="Espace Cloud"
-          >
-            <HardDrive className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="absolute -left-36 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Espace Cloud
-            </span>
-          </button>
+      <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-8">
 
-          {/* Favorites Icon */}
-          <button
-            onClick={() => navigate('/favorites')}
-            className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
-            title="Favoris"
+        {/* Sidebar Desktop */}
+        {!isMobile && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, ease: brandCurve }}
+            className="fixed right-0 top-0 h-full w-20 bg-card border-l border-border z-50 flex flex-col items-center py-6 gap-4"
           >
-            <Star className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="absolute -left-32 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Favoris
-            </span>
-          </button>
+            {/* Cloud Icon */}
+            <button
+              onClick={() => navigate('/cloud')}
+              className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
+              title="Espace Cloud"
+            >
+              <HardDrive className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="absolute -left-36 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Espace Cloud
+              </span>
+            </button>
 
-          {/* Divider */}
-          <div className="w-8 h-px bg-border"></div>
+            {/* Favorites Icon */}
+            <button
+              onClick={() => navigate('/favorites')}
+              className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
+              title="Favoris"
+            >
+              <Star className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="absolute -left-32 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Favoris
+              </span>
+            </button>
 
-          {/* Create Document Icon */}
-          <button
-            onClick={() => navigate('/editor')}
-            className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
-            title="Nouveau document"
-          >
-            <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/40 transition-colors">
-              <PlusIcon className="w-5 h-5 text-primary" />
-            </div>
-            <span className="absolute -left-40 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Nouveau document
-            </span>
-          </button>
-        </motion.div>
+            {/* Divider */}
+            <div className="w-8 h-px bg-border"></div>
+
+            {/* Create Document Icon */}
+            <button
+              onClick={() => navigate('/editor')}
+              className="group relative p-3 rounded-lg hover:bg-primary/10 transition-colors"
+              title="Nouveau document"
+            >
+              <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/40 transition-colors">
+                <PlusIcon className="w-5 h-5 text-primary" />
+              </div>
+              <span className="absolute -left-40 top-1/2 -translate-y-1/2 bg-background border border-border px-3 py-2 rounded text-xs font-mono text-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Nouveau document
+              </span>
+            </button>
+          </motion.div>
+        )}
+
+        {/* Mobile Bottom Navigation */}
+        {isMobile && (
+          <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-2">
+            <button
+              onClick={() => navigate('/cloud')}
+              className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+              title="Espace Cloud"
+            >
+              <HardDrive className="w-5 h-5" />
+              <span className="text-xs font-mono">Cloud</span>
+            </button>
+            <button
+              onClick={() => navigate('/favorites')}
+              className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+              title="Favoris"
+            >
+              <Star className="w-5 h-5" />
+              <span className="text-xs font-mono">Favoris</span>
+            </button>
+            <button
+              onClick={() => navigate('/editor')}
+              className="flex flex-col items-center gap-1 p-2 text-muted-foreground hover:text-primary transition-colors"
+              title="Nouveau document"
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span className="text-xs font-mono">Nouveau</span>
+            </button>
+          </nav>
+        )}
 
         {/* Search Bar */}
         <motion.div

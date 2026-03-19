@@ -206,33 +206,34 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="h-12 border-b flex items-center justify-between px-4">
+      <header className="h-14 sm:h-12 border-b flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <HardDrive className="w-4 h-4 text-primary" />
-          <span className="font-mono text-xs tracking-[0.2em] text-muted-foreground">
+          <HardDrive className="w-5 h-5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+          <span className="font-mono text-sm sm:text-xs tracking-[0.2em] text-muted-foreground truncate">
             JUX_CLOUD
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground font-mono">
+          <span className="text-sm sm:text-xs text-muted-foreground font-mono truncate max-w-[150px] sm:max-w-none">
             SYSTEM_ACCESS: GRANTED
           </span>
           <button
             onClick={handleLogout}
-            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+            className="p-3 sm:p-2 -m-1 sm:m-0 text-muted-foreground hover:text-destructive transition-colors rounded-sm hover:bg-accent/50"
+            title="Logout"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </header>
 
       <div className="flex-1 flex flex-col">
           {/* Breadcrumbs + Actions */}
-          <div className="h-10 border-b flex items-center justify-between px-4">
-            <div className="flex items-center gap-1 font-mono text-xs">
+          <div className="h-12 sm:h-10 border-b flex items-center justify-between px-4">
+            <div className="flex items-center gap-1 sm:gap-0.5 font-mono text-sm sm:text-xs flex-wrap gap-1">
               <button
                 onClick={() => setCurrentFolderId(undefined)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="px-2 py-1 text-muted-foreground hover:text-foreground transition-colors rounded-sm hover:bg-accent/50 whitespace-nowrap"
               >
                 ROOT
               </button>
@@ -241,7 +242,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                   <span className="text-muted-foreground">/</span>
                   <button
                     onClick={() => setCurrentFolderId(b.id)}
-                    className="text-muted-foreground hover:text-foreground transition-colors uppercase"
+                    className="px-2 py-1 text-muted-foreground hover:text-foreground transition-colors uppercase rounded-sm hover:bg-accent/50 whitespace-nowrap truncate max-w-[100px] sm:max-w-none"
                   >
                     {b.name}
                   </button>
@@ -251,13 +252,13 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowNewFolder(!showNewFolder)}
-                className="p-2 text-muted-foreground hover:text-primary transition-colors"
+                className="p-3 sm:p-2 -m-1 sm:m-0 text-muted-foreground hover:text-primary transition-colors rounded-sm hover:bg-accent/50"
                 title="New folder"
               >
-                <FolderPlus className="w-4 h-4" />
+                <FolderPlus className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
-              <label className="p-2 text-muted-foreground hover:text-primary transition-colors cursor-pointer" title="Upload">
-                <Upload className="w-4 h-4" />
+              <label className="p-3 sm:p-2 -m-1 sm:m-0 text-muted-foreground hover:text-primary transition-colors cursor-pointer rounded-sm hover:bg-accent/50" title="Upload">
+                <Upload className="w-5 h-5 sm:w-4 sm:h-4" />
                 <input
                   type="file"
                   multiple
@@ -278,19 +279,19 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 transition={{ duration: 0.2, ease: brandCurve }}
                 className="border-b px-4 overflow-hidden"
               >
-                <div className="flex items-center gap-2 py-2">
+                <div className="flex items-center gap-2 py-3 sm:py-2">
                   <input
                     type="text"
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
                     placeholder="folder_name"
-                    className="bg-secondary border border-border px-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary flex-1"
+                    className="bg-secondary border border-border px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary flex-1"
                     autoFocus
                   />
                   <button
                     onClick={handleCreateFolder}
-                    className="px-3 py-1.5 text-xs font-mono bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                    className="px-4 sm:px-3 py-2.5 sm:py-1.5 text-sm sm:text-xs font-mono bg-primary text-primary-foreground hover:opacity-90 transition-opacity whitespace-nowrap"
                   >
                     CREATE
                   </button>
@@ -343,18 +344,19 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               >
                 {/* Folders */}
                 {folders.map((folder) => (
-                  <div
-                    key={folder.id}
-                    className="group flex items-center h-10 px-3 border border-transparent hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
+                <div
+                  key={folder.id}
+                  className="group flex flex-col sm:flex-row sm:items-center h-14 sm:h-10 px-4 sm:px-3 border border-transparent hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer rounded-sm"
+                >
+                  <button
+                    onClick={() => setCurrentFolderId(folder.id)}
+                    className="flex items-center gap-3 flex-1 min-w-0 py-2"
                   >
-                    <button
-                      onClick={() => setCurrentFolderId(folder.id)}
-                      className="flex items-center gap-3 flex-1 min-w-0"
-                    >
-                      <Folder className="w-4 h-4 text-primary shrink-0" />
-                      <span className="text-sm font-mono truncate">{folder.name}</span>
-                    </button>
-                    <span className="text-xs text-muted-foreground font-mono mr-4">
+                    <Folder className="w-5 h-5 sm:w-4 sm:h-4 text-primary shrink-0 flex-shrink-0" />
+                    <span className="text-base sm:text-sm font-mono truncate font-medium">{folder.name}</span>
+                  </button>
+                  <div className="flex sm:gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                    <span className="text-sm sm:text-xs text-muted-foreground font-mono flex-shrink-0 sm:mr-4">
                       {timeAgo(folder.created)}
                     </span>
                     <button
@@ -362,79 +364,82 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                         e.stopPropagation();
                         handleDeleteFolder(folder.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all"
+                      className="ml-auto sm:ml-0 opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-destructive transition-all rounded hover:bg-destructive/10"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
+                </div>
                 ))}
 
                 {/* Files */}
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="group flex items-center h-10 px-3 border border-transparent hover:border-border transition-colors cursor-pointer"
+                    className="group flex flex-col sm:flex-row sm:items-center h-20 sm:h-10 px-4 sm:px-3 border border-transparent hover:border-border transition-colors cursor-pointer rounded-sm"
                     onClick={() => {
                       setSelectedFile(file);
                       setShowPreview(true);
                     }}
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm truncate">{file.name}</span>
+                    <div className="flex items-center gap-3 flex-1 min-w-0 py-2">
+                      <FileText className="w-6 h-6 sm:w-4 sm:h-4 text-muted-foreground shrink-0 flex-shrink-0" />
+                      <span className="text-lg sm:text-sm font-mono truncate font-medium">{file.name}</span>
                     </div>
-                    <span className="text-xs text-primary font-mono tabular-nums mr-4">
-                      {formatSize(file.size)}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-mono mr-4">
-                      {timeAgo(file.created)}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFavorite(file.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
-                      title={file.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-                    >
-                      {file.favorite ? (
-                        <StarFilled className="w-3.5 h-3.5 text-primary fill-primary" />
-                      ) : (
-                        <Star className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRenamingFile(file);
-                        setNewFileName(file.name);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
-                      title="Rename"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    {file.name.endsWith('.json') && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate('/editor', { state: { fileId: file.id } });
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary transition-all mr-2"
-                        title="Edit"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFile(file.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                      <div className="flex sm:gap-2 text-xs text-primary sm:mr-2 font-mono tabular-nums flex-shrink-0">
+                        <span>{formatSize(file.size)}</span>
+                        <span className="text-muted-foreground">{timeAgo(file.created)}</span>
+                      </div>
+                      <div className="flex gap-1 mt-2 sm:mt-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(file.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
+                          title={file.favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                        >
+                          {file.favorite ? (
+                            <StarFilled className="w-5 h-5 sm:w-3.5 sm:h-3.5 text-primary fill-primary" />
+                          ) : (
+                            <Star className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingFile(file);
+                            setNewFileName(file.name);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
+                          title="Rename"
+                        >
+                          <Pencil className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                        </button>
+                        {file.name.endsWith('.json') && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/editor', { state: { fileId: file.id } });
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFile(file.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-destructive transition-all rounded hover:bg-destructive/10 ml-auto sm:ml-0"
+                        >
+                          <Trash2 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </motion.div>
@@ -457,7 +462,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2, ease: brandCurve }}
-              className="bg-background border rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto"
+              className="bg-background border rounded-lg p-6 max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -518,9 +523,12 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="h-8 border-t flex items-center px-4">
-        <span className="text-xs text-muted-foreground font-mono">
+      <footer className="h-10 sm:h-8 border-t flex items-center justify-between px-4">
+        <span className="text-sm sm:text-xs text-muted-foreground font-mono">
           {folders.length} folders / {files.length} files
+        </span>
+        <span className="text-xs text-muted-foreground hidden sm:inline">
+          Tap items for preview
         </span>
       </footer>
 
