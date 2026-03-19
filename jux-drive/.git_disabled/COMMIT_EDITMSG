@@ -1,0 +1,37 @@
+testttt
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Your branch is based on 'origin/main', but the upstream is gone.
+#   (use "git branch --unset-upstream" to fixup)
+#
+# Changes to be committed:
+#	new file:   TODO-home.md
+#	new file:   TODO.md
+#	new file:   icons/Gemini_Generated_Image_9g2wts9g2wts9g2w.png
+#	new file:   icons/icon-128x128.png
+#	new file:   icons/icon-144x144.png
+#	new file:   icons/icon-152x152.png
+#	new file:   icons/icon-16x16.png
+#	new file:   icons/icon-192x192.png
+#	new file:   icons/icon-32x32.png
+#	new file:   icons/icon-384x384.png
+#	new file:   icons/icon-512x512.png
+#	new file:   icons/icon-72x72.png
+#	new file:   icons/icon-96x96.png
+#	modified:   index.html
+#	new file:   manifest.json
+#	new file:   service-worker.js
+#	modified:   src/App.css
+#	modified:   src/App.tsx
+#	new file:   src/components/AuthEntry.tsx
+#	modified:   src/components/Dashboard.tsx
+#	modified:   src/components/HomePage.tsx
+#	deleted:    src/components/PinEntry.tsx
+#	modified:   src/lib/pocketbase.ts
+#	modified:   src/pages/Cloud.tsx
+#	new file:   src/pages/Favorites.tsx
+#	modified:   src/pages/Index.tsx
+#	modified:   tailwind.config.ts
+#
