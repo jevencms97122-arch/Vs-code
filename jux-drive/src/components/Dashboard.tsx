@@ -28,13 +28,16 @@ import {
   Pencil,
   Star,
   Star as StarFilled,
+  Share2,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { QRCodeSVG } from 'qrcode.react';
 const brandCurve = [0.16, 1, 0.3, 1] as const;
 
 interface DashboardProps {
   onLogout: () => void;
+  initialFolderId?: string;
 }
 
 function formatSize(bytes: number): string {
@@ -55,9 +58,9 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const Dashboard = ({ onLogout }: DashboardProps) => {
+const Dashboard = ({ onLogout, initialFolderId }: DashboardProps) => {
   const navigate = useNavigate();
-  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(undefined);
+  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(initialFolderId);
   const [folders, setFolders] = useState<PBFolder[]>([]);
   const [files, setFiles] = useState<PBFile[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<PBFolder[]>([]);
@@ -71,6 +74,43 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [renamingFile, setRenamingFile] = useState<PBFile | null>(null);
   const [newFileName, setNewFileName] = useState('');
+  const [shareFile, setShareFile] = useState<PBFile | null>(null);
+  const [downloadingFolder, setDownloadingFolder] = useState<string | null>(null);
+
+  // Force download a file (instead of opening in new tab)
+  const forceDownload = async (file: PBFile) => {
+    try {
+      const url = getFileUrl(file);
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download error:', err);
+    }
+  };
+
+  // Download all files in a folder
+  const handleDownloadFolder = async (folderId: string) => {
+    setDownloadingFolder(folderId);
+    try {
+      const folderFiles = await getFiles(folderId);
+      for (const file of folderFiles) {
+        await forceDownload(file);
+        // Small delay between downloads
+        await new Promise(r => setTimeout(r, 300));
+      }
+    } catch (err) {
+      console.error('Folder download error:', err);
+    }
+    setDownloadingFolder(null);
+  };
 
   const loadContent = useCallback(async () => {
     setLoading(true);
@@ -355,20 +395,31 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                     <Folder className="w-5 h-5 sm:w-4 sm:h-4 text-primary shrink-0 flex-shrink-0" />
                     <span className="text-base sm:text-sm font-mono truncate font-medium">{folder.name}</span>
                   </button>
-                  <div className="flex sm:gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                    <span className="text-sm sm:text-xs text-muted-foreground font-mono flex-shrink-0 sm:mr-4">
-                      {timeAgo(folder.created)}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFolder(folder.id);
-                      }}
-                      className="ml-auto sm:ml-0 opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-destructive transition-all rounded hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                    </button>
-                  </div>
+                    <div className="flex sm:gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                      <span className="text-sm sm:text-xs text-muted-foreground font-mono flex-shrink-0 sm:mr-4">
+                        {timeAgo(folder.created)}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadFolder(folder.id);
+                        }}
+                        disabled={downloadingFolder === folder.id}
+                        className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10 disabled:opacity-50"
+                        title="Télécharger le dossier"
+                      >
+                        <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteFolder(folder.id);
+                        }}
+                        className="ml-auto sm:ml-0 opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-destructive transition-all rounded hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                      </button>
+                    </div>
                 </div>
                 ))}
 
@@ -409,11 +460,31 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            setShareFile(file);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
+                          title="Partager"
+                        >
+                          <Share2 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            forceDownload(file);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
+                          title="Télécharger"
+                        >
+                          <Download className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setRenamingFile(file);
                             setNewFileName(file.name);
                           }}
                           className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
-                          title="Rename"
+                          title="Renommer"
                         >
                           <Pencil className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                         </button>
@@ -424,7 +495,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                               navigate('/editor', { state: { fileId: file.id } });
                             }}
                             className="opacity-0 group-hover:opacity-100 p-2 sm:p-1 text-muted-foreground hover:text-primary transition-all rounded hover:bg-primary/10"
-                            title="Edit"
+                            title="Éditer"
                           >
                             <Edit className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
                           </button>
@@ -468,14 +539,23 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-mono">{selectedFile.name}</h3>
                 <div className="flex items-center gap-2">
-                  <a
-                    href={getFileUrl(selectedFile)}
-                    download={selectedFile.name}
+                  <button
+                    onClick={() => forceDownload(selectedFile)}
                     className="p-2 text-muted-foreground hover:text-primary transition-colors"
-                    title="Download"
+                    title="Télécharger"
                   >
                     <Download className="w-5 h-5" />
-                  </a>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShareFile(selectedFile);
+                      setShowPreview(false);
+                    }}
+                    className="p-2 text-muted-foreground hover:text-primary transition-colors"
+                    title="Partager"
+                  >
+                    <Share2 className="w-5 h-5" />
+                  </button>
                   <button
                     onClick={() => {
                       handleDeleteFile(selectedFile.id);
@@ -587,6 +667,53 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                     Renommer
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share QR Code Modal */}
+      <AnimatePresence>
+        {shareFile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShareFile(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2, ease: brandCurve }}
+              className="bg-background border rounded-lg p-6 w-80 sm:w-96"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-base font-mono font-medium">Partager</h3>
+                <button
+                  onClick={() => setShareFile(null)}
+                  className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex flex-col items-center gap-4">
+                <div className="bg-white p-4 rounded-lg">
+                  <QRCodeSVG
+                    value={getFileUrl(shareFile)}
+                    size={200}
+                    level="H"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground font-mono text-center truncate max-w-full px-2">
+                  {shareFile.name}
+                </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  Scannez ce QR code pour télécharger le fichier
+                </p>
               </div>
             </motion.div>
           </motion.div>

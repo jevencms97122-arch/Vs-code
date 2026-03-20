@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from '@/components/Dashboard';
 import { ArrowLeft } from 'lucide-react';
 
 const Cloud = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialFolderId = (location.state as { folderId?: string })?.folderId;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -17,9 +19,10 @@ const Cloud = () => {
         </button>
       </div>
       <div className="flex-1">
-        <Dashboard onLogout={() => {
-          // No logout functionality needed since PIN auth is removed
-        }} />
+        <Dashboard
+          initialFolderId={initialFolderId}
+          onLogout={() => {}}
+        />
       </div>
     </div>
   );
